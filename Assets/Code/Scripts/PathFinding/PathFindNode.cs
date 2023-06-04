@@ -1,12 +1,12 @@
 using UnityEngine;
-namespace ClashOfDefense.PathFinding
+namespace ClashOfDefense.Game.PathFinding
 {
 	public class PathFindNode
 	{
 		public Vector2Int position;
 		public int hCost;
 		public int gCost;
-		public int fCost => hCost + gCost;
+		public int fCost;
 		public PathFindNode parent;
 
 		public PathFindNode(Vector2Int position, int h, int g)
@@ -14,6 +14,7 @@ namespace ClashOfDefense.PathFinding
 			this.position = position;
 			hCost = h;
 			gCost = g;
+			fCost = h + g;
 		}
 	}
 }

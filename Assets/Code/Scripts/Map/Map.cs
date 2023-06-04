@@ -3,6 +3,7 @@ using UnityEngine.Events;
 
 namespace ClashOfDefense.Game.Environment
 {
+	using System.Collections;
 	using UnityEngine;
 
 	public class Map : MonoBehaviour
@@ -10,11 +11,14 @@ namespace ClashOfDefense.Game.Environment
 		[SerializeField] private float generationFrequency = 0.1f;
 		[SerializeField] private MapNode mapNodePrefab;
 		[SerializeField] private Transform mapNodeParent;
-		[SerializeField] private NodeTypeRestrictions[] nodeTypeRestrictions;
+		[SerializeField] private NodeTypeData[] nodeTypeData;
+		[SerializeField] private NodeTypeData fallbackNodeTypeData;
 		private Vector2Int mapSize;
 		private float tileSize;
 		private MapNode[,] mapNodes;
 		private int startupSeed = 0;
+		private Coroutine generationCoroutine;
+		private Coroutine querryNodeCostCoroutine;
 
 		public void Setup(Vector2Int mapSize, int seed, float tileSize)
 		{
@@ -23,60 +27,117 @@ namespace ClashOfDefense.Game.Environment
 			this.tileSize = tileSize;
 		}
 
-		public void QuerryNodeCost(UnityAction<Vector2Int, byte[]> callback)
+		public void Clear()
 		{
+			if (mapNodes != null)
+			{
+				for (int x = 0; x < mapSize.x; x++)
+				{
+					for (int y = 0; y < mapSize.y; y++)
+					{
+						Destroy(mapNodes[x, y].gameObject);
+					}
+				}
+			}
+		}
+
+		public void QuerryNodeCost(UnityAction<Vector2Int, Costs> nodeCostSetter, UnityAction callback)
+		{
+			if (querryNodeCostCoroutine != null)
+			{
+				StopCoroutine(querryNodeCostCoroutine);
+			}
+			StartCoroutine(QuerryNodeCostEnumerator(nodeCostSetter, callback));
+		}
+
+		private IEnumerator QuerryNodeCostEnumerator(UnityAction<Vector2Int, Costs> nodeCostSetter, UnityAction callback)
+		{
+			int maxCounter = 1;
+			int counter = 1;
+
 			for (int x = 0; x < mapSize.x; x++)
 			{
 				for (int y = 0; y < mapSize.y; y++)
 				{
 					Vector2Int position = new Vector2Int(x, y);
-					callback(position, GetCost(position));
+					nodeCostSetter(position, GetCost(position));
+
+					if (--counter <= 0)
+					{
+						if (Time.deltaTime < 0.05f)
+						{
+							maxCounter++;
+						}
+						counter = maxCounter;
+						yield return null;
+					}
 				}
 			}
+			callback?.Invoke();
 		}
 
-		public byte[] GetCost(Vector2Int position)
+		public Costs GetCost(Vector2Int position)
 		{
 			return mapNodes[position.x, position.y].Costs;
 		}
 
-		public void GenerateMap()
+		public void GenerateMap(UnityAction callback)
+		{
+			if (generationCoroutine != null)
+			{
+				StopCoroutine(generationCoroutine);
+			}
+			generationCoroutine = StartCoroutine(GenerateMapCoroutine(callback));
+		}
+
+		private IEnumerator GenerateMapCoroutine(UnityAction callback)
 		{
 			mapNodes = new MapNode[mapSize.x, mapSize.y];
+			int maxCounter = 1;
+			int counter = 1;
 			for (int x = 0; x < mapSize.x; x++)
 			{
 				for (int y = 0; y < mapSize.y; y++)
 				{
-					MapNode mapNode = Instantiate(mapNodePrefab, mapNodeParent);
-					mapNode.SetProperties(new Vector2Int(x, y), tileSize, Random.value, Random.value, Random.value);
-					mapNodes[x, y] = mapNode;
+					float treePercentage = PerlinNoiseWithOctave(x, y, 4, 0.5f, 1);
+					treePercentage -= 0.5f; treePercentage *= 2; treePercentage = Mathf.Max(0.01f, treePercentage);
 
 					float rockPercentage = PerlinNoiseWithOctave(x, y, 4, 0.5f, 0);
 					rockPercentage -= 0.5f; rockPercentage *= 2; rockPercentage = Mathf.Max(0.01f, rockPercentage);
 
-					float treePercentage = PerlinNoiseWithOctave(x, y, 4, 0.5f, 1);
-					treePercentage -= 0.5f; treePercentage *= 2; treePercentage = Mathf.Max(0.01f, treePercentage);
-
 					float waterPercentage = PerlinNoiseWithOctave(x, y, 4, 0.5f, 2);
 					waterPercentage -= 0.5f; waterPercentage *= 2; waterPercentage = Mathf.Max(0.01f, waterPercentage);
 
-					mapNode.SetProperties(new Vector2(x, y), tileSize, rockPercentage, treePercentage, waterPercentage);
+					NodeTypeData nodeTypeData = EvaluateNodeType(treePercentage, rockPercentage, waterPercentage);
+
+					MapNode mapNode = Instantiate(nodeTypeData.nodePrefab, mapNodeParent);
+					mapNodes[x, y] = mapNode;
+
+					mapNode.SetProperties(new Vector2(x, y), tileSize, nodeTypeData.costs);
+					if (--counter <= 0)
+					{
+						if (Time.deltaTime < 0.05f)
+						{
+							maxCounter++;
+						}
+						counter = maxCounter;
+						yield return null;
+					}
 				}
 			}
+			callback?.Invoke();
 		}
 
-		private NodeTypeRestrictions EvaluateNodeType(float treePercentage, float rockPercentage, float waterPercentage)
+		private NodeTypeData EvaluateNodeType(float treePercentage, float rockPercentage, float waterPercentage)
 		{
-			NodeTypeRestrictions restrictions = null;
-			foreach (NodeTypeRestrictions restriction in nodeTypeRestrictions)
+			foreach (NodeTypeData data in nodeTypeData)
 			{
-				if (restriction.Evaluate(treePercentage, rockPercentage, waterPercentage))
+				if (data.Evaluate(treePercentage, rockPercentage, waterPercentage))
 				{
-					restrictions = restriction;
-					break;
+					return data;
 				}
 			}
-			return restrictions;
+			return fallbackNodeTypeData;
 		}
 
 		private float PerlinNoiseWithOctave(float x, float y, int octaves, float persistence, int seed)
@@ -93,51 +154,24 @@ namespace ClashOfDefense.Game.Environment
 			return total;
 		}
 
-		[System.Serializable]
-		[CreateAssetMenu(fileName = "NodeTypeRestrictions", menuName = "ClashOfDefense/Map/NodeTypeRestrictions")]
-		private class NodeTypeRestrictions : ScriptableObject
+		public Vector2Int WorldToMapPosition(Vector3 position)
 		{
-			public MapNodeType type;
-			public Limitation treeLimits;
-			public Limitation rockLimits;
-			public Limitation waterLimits;
-			public MapNode nodePrefab;
-			public SpawnableObjects[] spawnableObjects;
-
-			[System.Serializable]
-			public struct SpawnableObjects
-			{
-				public GameObject prefab;
-				public float spawnChance;
-			}
-
-			public bool Evaluate(float treePercentage, float rockPercentage, float waterPercentage)
-			{
-				return treeLimits.Evaluate(treePercentage) &&
-					rockLimits.Evaluate(rockPercentage) &&
-					waterLimits.Evaluate(waterPercentage);
-			}
-
-			[System.Serializable]
-			public struct Limitation
-			{
-				public float min;
-				public float max;
-				public bool Evaluate(float value)
-				{
-					return value >= min && value <= max;
-				}
-			}
+			return new Vector2Int(Mathf.FloorToInt(position.x / tileSize), Mathf.FloorToInt(position.z / tileSize));
 		}
 
-		[System.Serializable]
-		private enum MapNodeType
+		public bool IsInMap(Vector2Int position)
 		{
-			Plains,
-			Grass,
-			Rock,
-			Tree,
-			Water,
+			return position.x >= 0 && position.x < mapSize.x && position.y >= 0 && position.y < mapSize.y;
 		}
+	}
+
+	[System.Serializable]
+	public enum MapNodeType
+	{
+		Plains,
+		Grass,
+		Rock,
+		Tree,
+		Water,
 	}
 }

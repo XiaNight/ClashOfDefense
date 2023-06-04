@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c27819afbc56d7c4bb437fbfaa004a91, type: 3}
+  m_Name: Rocks
+  m_EditorClassIdentifier: 
+  type: 0
+  treeLimits:
+    min: 0
+    max: 0.375
+  rockLimits:
+    min: 0.375
+    max: 0.75
+  waterLimits:
+    min: 0
+    max: 0.75
+  nodePrefab: {fileID: 4011863675971312301, guid: c7b9205bdfdfa5e47b82b45a2ef9fec5,
+    type: 3}
+  spawnableObjects: []
+  costs:
+    costs: 230a0a0a0a0a0a0a
