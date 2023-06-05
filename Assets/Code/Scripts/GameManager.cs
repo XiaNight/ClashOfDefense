@@ -6,12 +6,15 @@ namespace ClashOfDefense.Game
 {
 	using Environment;
 	using PathFinding;
+	using Game.Control;
+
 	public class GameManager : MonoBehaviour
 	{
 		[SerializeField] private Vector2Int mapSize;
 		[SerializeField] private float tileSize;
 		[SerializeField] private Map map;
 		[SerializeField] private PathFindMap pathFindMap;
+		[SerializeField] private CameraControl cameraControl;
 		[SerializeField] private Vector2Int[] pathFinded;
 
 		private Vector2Int start;
@@ -80,6 +83,8 @@ namespace ClashOfDefense.Game
 					PathFind();
 				});
 			});
+
+			cameraControl.SetBounds(new Vector3(mapSize.x, 100, mapSize.y) * tileSize);
 		}
 
 		private void PathFind()
@@ -92,6 +97,7 @@ namespace ClashOfDefense.Game
 		{
 			if (pathFinded != null)
 			{
+				Gizmos.color = Color.red;
 				for (int i = 0; i < pathFinded.Length - 1; i++)
 				{
 					Gizmos.DrawLine(new Vector3(pathFinded[i].x, 0, pathFinded[i].y) * tileSize, new Vector3(pathFinded[i + 1].x, 0, pathFinded[i + 1].y) * tileSize);

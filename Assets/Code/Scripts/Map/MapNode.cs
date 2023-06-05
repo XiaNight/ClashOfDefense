@@ -44,9 +44,9 @@ namespace ClashOfDefense.Game.Environment
 #if UNITY_EDITOR
 		private void OnDrawGizmosSelected()
 		{
-			// draw costs as gizmos using handle
-			Gizmos.color = Color.red;
-			Handles.Label(transform.position, costs.ToString());
+			// // draw costs as gizmos using handle
+			// Gizmos.color = Color.red;
+			// Handles.Label(transform.position, costs.ToString());
 		}
 #endif
 	}

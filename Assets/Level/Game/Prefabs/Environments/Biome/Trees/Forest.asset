@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c27819afbc56d7c4bb437fbfaa004a91, type: 3}
-  m_Name: Trees
+  m_Name: Forest
   m_EditorClassIdentifier: 
   type: 0
   treeLimits:
-    min: 0.375
-    max: 0.75
+    min: 0.75
+    max: 1
   rockLimits:
     min: 0
-    max: 0.75
+    max: 1
   waterLimits:
     min: 0
     max: 0.75
-  nodePrefab: {fileID: 9009451363649498899, guid: 594bd85d226af7b44b4a748cd7c52158,
+  nodePrefab: {fileID: 4275562906430758966, guid: a4d4b94a8d91aeb4581241d89ae7518b,
     type: 3}
   spawnableObjects: []
   costs:
-    costs: 230a0a0a0a0a0a0a
+    costs: 500a0a0a0a0a0a0a

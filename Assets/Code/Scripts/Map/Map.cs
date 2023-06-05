@@ -8,7 +8,9 @@ namespace ClashOfDefense.Game.Environment
 
 	public class Map : MonoBehaviour
 	{
-		[SerializeField] private float generationFrequency = 0.1f;
+		[Header("Generation Settings")]
+		[SerializeField] private float baseGenerationFrequency = 0.1f;
+		[SerializeField] private float generationStrength = 2.85f;
 		[SerializeField] private MapNode mapNodePrefab;
 		[SerializeField] private Transform mapNodeParent;
 		[SerializeField] private NodeTypeData[] nodeTypeData;
@@ -93,20 +95,33 @@ namespace ClashOfDefense.Game.Environment
 		private IEnumerator GenerateMapCoroutine(UnityAction callback)
 		{
 			mapNodes = new MapNode[mapSize.x, mapSize.y];
+
+			float scaleDamp = 1 / generationStrength;
+
+			float treeFrequency = baseGenerationFrequency;
+			float rockFrequency = baseGenerationFrequency * 0.6f;
+			float waterFrequency = baseGenerationFrequency * 1.5f;
+
+			Vector2 mapCenter = new Vector2(mapSize.x * 0.5f, mapSize.y * 0.5f);
+
 			int maxCounter = 1;
 			int counter = 1;
 			for (int x = 0; x < mapSize.x; x++)
 			{
 				for (int y = 0; y < mapSize.y; y++)
 				{
-					float treePercentage = PerlinNoiseWithOctave(x, y, 4, 0.5f, 1);
-					treePercentage -= 0.5f; treePercentage *= 2; treePercentage = Mathf.Max(0.01f, treePercentage);
+					float centerFade = CenterFade(new Vector2Int(x, y), mapCenter);
+					float treePercentage = PerlinNoiseWithOctave(x, y, 4, treeFrequency, 0.5f, 1);
+					treePercentage -= scaleDamp; treePercentage *= generationStrength;
+					treePercentage -= centerFade * 0.15f; treePercentage = Mathf.Max(0.01f, treePercentage);
 
-					float rockPercentage = PerlinNoiseWithOctave(x, y, 4, 0.5f, 0);
-					rockPercentage -= 0.5f; rockPercentage *= 2; rockPercentage = Mathf.Max(0.01f, rockPercentage);
+					float rockPercentage = PerlinNoiseWithOctave(x, y, 4, rockFrequency, 0.5f, 0);
+					rockPercentage -= scaleDamp; rockPercentage *= generationStrength;
+					rockPercentage -= centerFade * 0.35f; rockPercentage = Mathf.Max(0.01f, rockPercentage);
 
-					float waterPercentage = PerlinNoiseWithOctave(x, y, 4, 0.5f, 2);
-					waterPercentage -= 0.5f; waterPercentage *= 2; waterPercentage = Mathf.Max(0.01f, waterPercentage);
+					float waterPercentage = PerlinNoiseWithOctave(x, y, 4, waterFrequency, 0.5f, 2);
+					waterPercentage -= scaleDamp; waterPercentage *= generationStrength;
+					waterPercentage -= centerFade * 0.25f; waterPercentage = Mathf.Max(0.01f, waterPercentage);
 
 					NodeTypeData nodeTypeData = EvaluateNodeType(treePercentage, rockPercentage, waterPercentage);
 
@@ -128,6 +143,15 @@ namespace ClashOfDefense.Game.Environment
 			callback?.Invoke();
 		}
 
+		private float CenterFade(Vector2Int position, Vector2 center)
+		{
+			float distance = Vector2.Distance(center, position) / mapSize.x;
+			distance *= 2;
+			distance = 1 - Mathf.Pow(Mathf.Clamp01(distance), 3);
+
+			return distance;
+		}
+
 		private NodeTypeData EvaluateNodeType(float treePercentage, float rockPercentage, float waterPercentage)
 		{
 			foreach (NodeTypeData data in nodeTypeData)
@@ -140,7 +164,7 @@ namespace ClashOfDefense.Game.Environment
 			return fallbackNodeTypeData;
 		}
 
-		private float PerlinNoiseWithOctave(float x, float y, int octaves, float persistence, int seed)
+		private float PerlinNoiseWithOctave(float x, float y, int octaves, float generationFrequency, float persistence, int seed)
 		{
 			float total = 0;
 			float frequency = generationFrequency;

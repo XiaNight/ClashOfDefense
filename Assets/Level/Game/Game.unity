@@ -200,14 +200,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
-  m_LocalRotation: {x: 0.531785, y: 0.0022346852, z: 0.0008586247, w: 0.846876}
-  m_LocalPosition: {x: 254.45816, y: 401.9303, z: -11.874512}
+  m_LocalRotation: {x: 0.5, y: -0, z: -0, w: 0.8660254}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 2094981331}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 60, y: 0, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -385,10 +385,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d612b6edcac12b4d818b4a328c254ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapSize: {x: 100, y: 100}
+  mapSize: {x: 60, y: 60}
   tileSize: 5
   map: {fileID: 1219819566}
   pathFindMap: {fileID: 1562926410}
+  cameraControl: {fileID: 0}
   pathFinded: []
 --- !u!4 &580966200
 Transform:
@@ -531,16 +532,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1f6ce3ff0fe3354996bed38dc356f4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  generationFrequency: 0.065
+  baseGenerationFrequency: 0.1
+  generationStrength: 2.85
   mapNodePrefab: {fileID: 1378388002918450508, guid: 76aca6c032b9d9d4dbf8957d51651225,
     type: 3}
   mapNodeParent: {fileID: 1147507512}
   nodeTypeData:
   - {fileID: 11400000, guid: 8d23dd123334617449ddf78dcaca9ed0, type: 2}
   - {fileID: 11400000, guid: 7592673de86d8824b8226fb71a0807d3, type: 2}
+  - {fileID: 11400000, guid: a26aab4ef7dd7f140833554ae3059de0, type: 2}
+  - {fileID: 11400000, guid: 424251740479b4d49aff3d20f95794b4, type: 2}
   - {fileID: 11400000, guid: 52ec1e624628ae048bfb88da8dbb4772, type: 2}
   - {fileID: 11400000, guid: 567ab255e8a028c4592926ab048350b5, type: 2}
   - {fileID: 11400000, guid: 15ffeb1bc61461e4db6d933189a7961d, type: 2}
+  - {fileID: 11400000, guid: 977806a4d0c090040ae7937531f6f3a1, type: 2}
+  - {fileID: 11400000, guid: 064277e15f9d7a545b6670201411a8ee, type: 2}
   - {fileID: 11400000, guid: f061f92e8f6bda54cbe4f6d9ecaa3ac7, type: 2}
   fallbackNodeTypeData: {fileID: 11400000, guid: 1e9fc0fb3aa07b3499ef3fa5aa11e10f,
     type: 2}
@@ -589,72 +595,55 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mapSize: {x: 0, y: 0}
---- !u!1001 &8282133848868310678
-PrefabInstance:
+--- !u!1 &2094981330
+GameObject:
   m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 5455837054888612920, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_Name
-      value: MapNode
-      objectReference: {fileID: 0}
-    - target: {fileID: 5455837054888612926, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 5455837054888612926, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5455837054888612926, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5455837054888612926, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5455837054888612926, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5455837054888612926, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5455837054888612926, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5455837054888612926, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5455837054888612926, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5455837054888612926, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5455837054888612926, guid: 32f226996f5c8734eb8d258c2f2afe4d,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 32f226996f5c8734eb8d258c2f2afe4d, type: 3}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2094981331}
+  - component: {fileID: 2094981332}
+  m_Layer: 0
+  m_Name: Camera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2094981331
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094981330}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 330585546}
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2094981332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2094981330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a1977eb55bac8d45a4ac8edf7d65fd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 10
+  zoomSpeed: 25
+  rotateSpeed: 3
+  minZoom: 10
+  maxZoom: 80
+  cameraTransform: {fileID: 330585546}
+  bounds: {x: 100, y: 100, z: 100}

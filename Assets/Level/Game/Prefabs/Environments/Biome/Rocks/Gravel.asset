@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c27819afbc56d7c4bb437fbfaa004a91, type: 3}
-  m_Name: Trees
+  m_Name: Gravel
   m_EditorClassIdentifier: 
   type: 0
   treeLimits:
-    min: 0.375
-    max: 0.75
-  rockLimits:
     min: 0
-    max: 0.75
+    max: 0.375
+  rockLimits:
+    min: 0.25
+    max: 0.5
   waterLimits:
     min: 0
     max: 0.75
-  nodePrefab: {fileID: 9009451363649498899, guid: 594bd85d226af7b44b4a748cd7c52158,
+  nodePrefab: {fileID: 6061473496254838843, guid: 94a018797bc781748984667831d5f2bd,
     type: 3}
   spawnableObjects: []
   costs:
-    costs: 230a0a0a0a0a0a0a
+    costs: 190a0a0a0a0a0a0a
