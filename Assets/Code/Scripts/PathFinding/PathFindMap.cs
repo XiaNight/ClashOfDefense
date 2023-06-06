@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
+using UnityEngine.Events;
 
 namespace ClashOfDefense.Game.PathFinding
 {
@@ -41,6 +43,17 @@ namespace ClashOfDefense.Game.PathFinding
 		}
 
 		#region A Star Path Finding
+
+		public Task FindPathAsync(Vector2Int start, Vector2Int end, Costs.Layer layer, UnityAction<Vector2Int[]> callback)
+		{
+			return Task.Run(() =>
+			{
+				// Find the path
+				Vector2Int[] path = PathFind(start, end, layer);
+				// Invoke the callback
+				callback.Invoke(path);
+			});
+		}
 
 		// using the A star algorithm to find the path
 		public Vector2Int[] PathFind(Vector2Int start, Vector2Int end, Costs.Layer layer)

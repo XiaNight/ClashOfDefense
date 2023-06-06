@@ -6,7 +6,9 @@ namespace ClashOfDefense.Game
 {
 	using Environment;
 	using PathFinding;
-	using Game.Control;
+	using Control;
+	using Entity;
+	using Structure;
 
 	public class GameManager : MonoBehaviour
 	{
@@ -15,15 +17,26 @@ namespace ClashOfDefense.Game
 		[SerializeField] private Map map;
 		[SerializeField] private PathFindMap pathFindMap;
 		[SerializeField] private CameraControl cameraControl;
-		[SerializeField] private Vector2Int[] pathFinded;
 
-		private Vector2Int start;
-		private Vector2Int end;
+		[Header("Round Settings")]
+		[SerializeField] private EnemyLevelData enemyLevelData;
+		[SerializeField] private int currentRoundIndex;
+		[Header("Building Data")]
+		[SerializeField] private Building baseBuildingPrefab;
+		[SerializeField] private List<Building> spawnedBuildings;
 
+		public int baseHealth = 100;
+		public int baseGold = 100;
+
+		private List<EntityAI> spawnedEnemies;
+		private List<Coroutine> spawnCoroutines;
+
+		private Vector2Int mapCenter;
 		private void Awake()
 		{
 			// use system time as seed
 			Random.InitState(System.DateTime.Now.Millisecond);
+			cameraControl.onMouseClicked += OnMouseClicked;
 		}
 
 		private void Update()
@@ -32,22 +45,20 @@ namespace ClashOfDefense.Game
 			{
 				GenerateNewMap();
 			}
-			if (Input.GetMouseButtonDown(0))
+		}
+
+		private void OnMouseClicked(int button, Vector3 position)
+		{
+			Vector2Int mapPosition = map.WorldToMapPosition(position);
+			if (map.IsInMap(mapPosition))
 			{
-				Vector2Int position = map.WorldToMapPosition(MouseRayPosition());
-				if (map.IsInMap(position))
+				if (button == 0)
 				{
-					start = position;
-					PathFind();
+
 				}
-			}
-			if (Input.GetMouseButtonDown(1))
-			{
-				Vector2Int position = map.WorldToMapPosition(MouseRayPosition());
-				if (map.IsInMap(position))
+				if (button == 1)
 				{
-					end = position;
-					PathFind();
+
 				}
 			}
 		}
@@ -65,44 +76,133 @@ namespace ClashOfDefense.Game
 
 		private void GenerateNewMap()
 		{
-			pathFindMap.Clear();
-			map.Clear();
+			ClearAll();
 
 			pathFindMap.SetMapSize(mapSize);
 			pathFindMap.Setup();
+			mapCenter = mapSize / 2;
 
 			// set map size
 			map.Setup(mapSize, Random.Range(0, 1000000), tileSize);
-			map.GenerateMap(() =>
-			{
-				map.QuerryNodeCost((pos, costs) => { pathFindMap.SetNodeCost(pos, costs); }, () =>
-				{
-					// set start and end
-					start = new Vector2Int(0, 0);
-					end = mapSize - Vector2Int.one;
-					PathFind();
-				});
-			});
+			map.GenerateMap(MapGenerated);
 
 			cameraControl.SetBounds(new Vector3(mapSize.x, 100, mapSize.y) * tileSize);
 		}
 
-		private void PathFind()
+		private void ClearAll()
 		{
-			// find the path
-			pathFinded = pathFindMap.PathFind(start, end, Costs.Layer.Ground);
+			currentRoundIndex = 0;
+			pathFindMap.Clear();
+			map.Clear();
+			StopAllSpawnCoroutines();
+			KillAllEnemies();
+		}
+
+		private void MapGenerated()
+		{
+			TransferNodeCost();
+			SpawnStructure(baseBuildingPrefab, mapCenter);
+		}
+
+		private void SpawnStructure(Building buildingPrefab, Vector2Int position)
+		{
+			Vector3 worldPosition = Helper.MapPositionTransformer.MapToWorldPosition(position, tileSize);
+			Building building = Instantiate(buildingPrefab, worldPosition, Quaternion.identity);
+			spawnedBuildings.Add(building);
+		}
+
+		private void TransferNodeCost()
+		{
+			map.QuerryNodeCost((pos, costs) => { pathFindMap.SetNodeCost(pos, costs); }, SpawnRound);
+		}
+
+		private void SpawnRound()
+		{
+			StopAllSpawnCoroutines();
+			if (spawnCoroutines == null)
+			{
+				spawnCoroutines = new List<Coroutine>();
+			}
+
+			if (spawnedEnemies == null)
+			{
+				spawnedEnemies = new List<EntityAI>();
+			}
+
+			RoundData currentRound = enemyLevelData.rounds[currentRoundIndex];
+			foreach (BatchData batchData in currentRound.batches)
+			{
+				spawnCoroutines.Add(StartCoroutine(SpawnBatchEnumerator(batchData)));
+			}
+		}
+
+		private void StopAllSpawnCoroutines()
+		{
+			if (spawnCoroutines != null)
+			{
+				foreach (Coroutine coroutine in spawnCoroutines)
+				{
+					StopCoroutine(coroutine);
+				}
+				spawnCoroutines.Clear();
+			}
+		}
+
+		private void KillAllEnemies()
+		{
+			if (spawnedEnemies != null)
+			{
+				foreach (EntityAI enemy in spawnedEnemies)
+				{
+					Destroy(enemy.gameObject);
+				}
+				spawnedEnemies.Clear();
+			}
+		}
+
+		private IEnumerator SpawnBatchEnumerator(BatchData batchData)
+		{
+			// spawn enemy
+			foreach (BatchData.SpawnData spawnData in batchData.enemies)
+			{
+				for (int i = 0; i < spawnData.count; i++)
+				{
+					Vector2Int mapSpawnPosition = DeterminSpawnPosition(batchData.spawnPattern);
+					Vector3 worldSpawnPosition = Helper.MapPositionTransformer.MapToWorldPosition(mapSpawnPosition, tileSize);
+					EntityAI enemy = Instantiate(spawnData.enemyData.entityPrefab, worldSpawnPosition, Quaternion.identity);
+					enemy.OnTreaversedTile += (pos) => { enemy.ProcessStructureData(spawnedBuildings); };
+					spawnedEnemies.Add(enemy);
+
+					pathFindMap.FindPathAsync(mapSpawnPosition, mapCenter, spawnData.enemyData.pathFindLayer, (path) => { enemy.Setup(path, tileSize); });
+					yield return new WaitForSeconds(batchData.spawnInterval);
+				}
+			}
+		}
+
+		private Vector2Int DeterminSpawnPosition(BatchData.SpawnPattern spawnPattern)
+		{
+			if (spawnPattern == BatchData.SpawnPattern.ArroundTheMap)
+			{
+				spawnPattern = (BatchData.SpawnPattern)Random.Range(0, 4);
+			}
+			switch (spawnPattern)
+			{
+				case BatchData.SpawnPattern.FromTop:
+					return new Vector2Int(Random.Range(0, mapSize.x), mapSize.y - 1);
+				case BatchData.SpawnPattern.FromBottom:
+					return new Vector2Int(Random.Range(0, mapSize.x), 0);
+				case BatchData.SpawnPattern.FromLeft:
+					return new Vector2Int(0, Random.Range(0, mapSize.y));
+				case BatchData.SpawnPattern.FromRight:
+					return new Vector2Int(mapSize.x - 1, Random.Range(0, mapSize.y));
+				default:
+					return Vector2Int.zero;
+			}
 		}
 
 		private void OnDrawGizmosSelected()
 		{
-			if (pathFinded != null)
-			{
-				Gizmos.color = Color.red;
-				for (int i = 0; i < pathFinded.Length - 1; i++)
-				{
-					Gizmos.DrawLine(new Vector3(pathFinded[i].x, 0, pathFinded[i].y) * tileSize, new Vector3(pathFinded[i + 1].x, 0, pathFinded[i + 1].y) * tileSize);
-				}
-			}
+
 		}
 	}
 }

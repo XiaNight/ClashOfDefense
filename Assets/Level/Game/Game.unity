@@ -389,8 +389,14 @@ MonoBehaviour:
   tileSize: 5
   map: {fileID: 1219819566}
   pathFindMap: {fileID: 1562926410}
-  cameraControl: {fileID: 0}
-  pathFinded: []
+  cameraControl: {fileID: 2094981332}
+  enemyLevelData: {fileID: 11400000, guid: 9dcc1724f0f389446b6e05109dcb2689, type: 2}
+  currentRoundIndex: 0
+  baseBuildingPrefab: {fileID: 8202056398251054953, guid: cae93dc6891f6694282fdab56d8f0a65,
+    type: 3}
+  spawnedBuildings: []
+  baseHealth: 100
+  baseGold: 100
 --- !u!4 &580966200
 Transform:
   m_ObjectHideFlags: 0
@@ -641,9 +647,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
-  zoomSpeed: 25
+  zoomSpeed: 1
   rotateSpeed: 3
-  minZoom: 10
-  maxZoom: 80
+  minZoom: 7
+  maxZoom: 150
   cameraTransform: {fileID: 330585546}
   bounds: {x: 100, y: 100, z: 100}
