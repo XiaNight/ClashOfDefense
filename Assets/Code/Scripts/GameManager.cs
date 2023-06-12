@@ -25,8 +25,8 @@ namespace ClashOfDefense.Game
 		[SerializeField] private Building baseBuildingPrefab;
 		[SerializeField] private List<Building> spawnedBuildings;
 
-		public int baseHealth = 100;
-		public int baseGold = 100;
+		[Header("Game")]
+		[SerializeField] private GameState gameState;
 
 		private List<EntityAI> spawnedEnemies;
 		private List<Coroutine> spawnCoroutines;
@@ -203,6 +203,26 @@ namespace ClashOfDefense.Game
 		private void OnDrawGizmosSelected()
 		{
 
+		}
+
+		public GameState AdvanceGameState()
+		{
+			switch (gameState)
+			{
+				case GameState.Building:
+					gameState = GameState.Playing;
+					break;
+				case GameState.Playing:
+					gameState = GameState.Building;
+					break;
+			}
+			return gameState;
+		}
+
+		public enum GameState
+		{
+			Building,
+			Playing,
 		}
 	}
 }

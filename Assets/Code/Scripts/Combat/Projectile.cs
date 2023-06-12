@@ -17,6 +17,7 @@ namespace ClashOfDefense.Game.Combat
 
 		private void OnCollisionEnter(Collision other)
 		{
+			Debug.Log("Hit");
 			OnHit?.Invoke(other.collider);
 			Destroy(gameObject);
 		}
