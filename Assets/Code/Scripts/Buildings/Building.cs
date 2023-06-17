@@ -8,18 +8,41 @@ namespace ClashOfDefense.Game.Structure
 
 	public class Building : MonoBehaviour
 	{
-		[SerializeField] private HitMark hitMarkPrefab;
-		public int maxHealth;
-		private int health;
+		[Header("Building Settings")]
+		[SerializeField] protected HitMark hitMarkPrefab;
+		[SerializeField] protected Vector3 centralPosition = new Vector3(0, 0.5f, 0);
+		public Vector3 CentralPosition { get => transform.position + centralPosition; }
+		[SerializeField] protected BuildingData data;
 
-		public event UnityAction OnDeath;
+		[Header("Status")]
+		[SerializeField] protected int health;
+		[SerializeField] protected int veterancy;
+		protected Vector2Int tilePosition;
+		protected int currentLevelIndex;
 
-		private void Start()
+		public event UnityAction OnDestroyed;
+
+		protected virtual void Start()
 		{
-			health = maxHealth;
+			health = data.levels[currentLevelIndex].maxHealth;
+			GameManager.Instance.OnEnemyTreaversedTile += ProcessEnemyData;
 		}
 
-		public virtual void ProcessEnemyData(EntityAI enemyData)
+		public virtual void Setup(BuildingData dataInstance, Vector2Int tilePosition)
+		{
+			data = dataInstance;
+			this.tilePosition = tilePosition;
+		}
+
+		public virtual void Reset()
+		{
+			if (data.regenerateHealth)
+			{
+				health = data.levels[currentLevelIndex].maxHealth;
+			}
+		}
+
+		public virtual void ProcessEnemyData(EntityAI enemyData, Vector2Int tilePosition)
 		{
 
 		}
@@ -31,9 +54,19 @@ namespace ClashOfDefense.Game.Structure
 			hitMark.SetText(damage.ToString());
 			if (health <= 0)
 			{
-				OnDeath?.Invoke();
+				OnDestroyed?.Invoke();
 				Destroy(gameObject);
 			}
+		}
+
+		private void OnDestroy()
+		{
+			GameManager.Instance.OnEnemyTreaversedTile -= ProcessEnemyData;
+		}
+
+		protected virtual void OnDrawGizmos()
+		{
+			Gizmos.DrawIcon(CentralPosition, "building.png", true);
 		}
 	}
 }

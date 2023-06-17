@@ -13,14 +13,25 @@ namespace ClashOfDefense.Game.Entity
 		[SerializeField] protected float speed;
 
 		[Space]
+		[Header("Path Finding")]
 		[SerializeField] protected Vector2Int[] pathFinded;
 		[SerializeField] protected int currentPathIndex;
+		[SerializeField] protected Vector3 centralPosition = new Vector3(0, 0.5f, 0);
+
+		[Header("Settings")]
+		[SerializeField] protected EnemyData enemyData;
+		public Vector3 CentralPosition { get => transform.position + centralPosition; }
+
+		[Header("Status")]
 		[SerializeField] protected bool paused = false;
+		[SerializeField] protected int health;
+		protected Vector2Int tilePosition;
+		public Vector2Int TilePosition { get => tilePosition; }
+
 
 		public event UnityAction<Vector2Int> OnTreaversedTile;
 		public event UnityAction OnPathEnded;
-
-		protected float tileSize;
+		public event UnityAction<EntityAI> OnDeath;
 
 		protected virtual void FixedUpdate()
 		{
@@ -30,12 +41,17 @@ namespace ClashOfDefense.Game.Entity
 			}
 		}
 
-		public virtual int Setup(Vector2Int[] path, float tileSize)
+		public virtual int Setup(EnemyData enemyData, Vector2Int[] path)
 		{
-			this.tileSize = tileSize;
+			this.enemyData = enemyData;
+
+			speed = enemyData.speed;
+			health = enemyData.health;
+			tilePosition = path[0];
+
 			pathFinded = path;
 			currentPathIndex = 0;
-			transform.position = MapPositionTransformer.MapToWorldPosition(pathFinded[currentPathIndex], tileSize);
+			transform.position = MapPositionTransformer.MapToWorldPosition(pathFinded[currentPathIndex], GameManager.Instance.tileSize);
 			return pathFinded.Length;
 		}
 
@@ -45,7 +61,7 @@ namespace ClashOfDefense.Game.Entity
 		{
 			if (pathFinded != null && pathFinded.Length > 0)
 			{
-				Vector3 targetPosition = MapPositionTransformer.MapToWorldPosition(pathFinded[currentPathIndex], tileSize);
+				Vector3 targetPosition = MapPositionTransformer.MapToWorldPosition(pathFinded[currentPathIndex], GameManager.Instance.tileSize);
 				Vector3 direction = targetPosition - transform.position;
 				float step = speed * Time.deltaTime;
 				if (direction.magnitude < step)
@@ -59,13 +75,37 @@ namespace ClashOfDefense.Game.Entity
 						OnPathEnded?.Invoke();
 						return;
 					}
-					OnTreaversedTile?.Invoke(pathFinded[currentPathIndex - 1]);
+
+					tilePosition = pathFinded[currentPathIndex - 1];
+					OnTreaversedTile?.Invoke(tilePosition);
 				}
 				else
 				{
 					transform.position += direction.normalized * step;
 				}
 			}
+		}
+
+		/// <summary>
+		/// Deals damage to this entity. Returns true if entity is dead.
+		/// </summary>
+		/// <param name="damage">damage</param>
+		/// <returns>true if entity is killed</returns>
+		public virtual bool DealDamage(int damage)
+		{
+			health -= damage;
+			if (health <= 0)
+			{
+				OnDeath?.Invoke(this);
+				Destroy(gameObject);
+				return true;
+			}
+			return false;
+		}
+
+		protected virtual void OnDrawGizmos()
+		{
+			Gizmos.DrawIcon(CentralPosition, "turret.png", true);
 		}
 	}
 }

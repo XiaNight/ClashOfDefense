@@ -49,14 +49,15 @@ MonoBehaviour:
   pathFinded: []
   currentPathIndex: 0
   paused: 0
+  enemyData: {fileID: 0}
   targeting:
     damage: 10
     range: 7
-    projectile: {fileID: 459054516602737133, guid: 47180fdf3115b06439f7ce9075616cec,
-      type: 3}
     cooldown: 2
     shots: 3
     shotInterval: 0.2
+  projectilePrefab: {fileID: 459054516602737133, guid: 47180fdf3115b06439f7ce9075616cec,
+    type: 3}
   muzzle: {fileID: 3611952297326635131}
 --- !u!1 &3611952297326635130
 GameObject:

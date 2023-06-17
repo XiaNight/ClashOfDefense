@@ -10,6 +10,19 @@ namespace ClashOfDefense.Game.Control
 	// Top Down Camera Control
 	public class CameraControl : MonoBehaviour
 	{
+		// Singleton
+		private static CameraControl instance;
+		public static CameraControl Instance
+		{
+			get
+			{
+				if (instance == null)
+				{
+					instance = FindObjectOfType<CameraControl>();
+				}
+				return instance;
+			}
+		}
 		[SerializeField] private float moveSpeed = 10f;
 		[SerializeField] private float zoomSpeed = 0.15f;
 		[SerializeField] private float rotateSpeed = 10f;
@@ -25,6 +38,11 @@ namespace ClashOfDefense.Game.Control
 		private float tilt = 60f;
 
 		public event UnityAction<int, Vector3> onMouseClicked;
+
+		private void Start()
+		{
+			UpdateCameraTileRotation();
+		}
 
 		private void Update()
 		{
@@ -59,13 +77,7 @@ namespace ClashOfDefense.Game.Control
 		{
 			if (Input.GetMouseButton(2))
 			{
-				// Tilt
-				tilt += Input.GetAxis("Mouse Y") * -rotateSpeed;
-				tilt = Mathf.Clamp(tilt, 30, 89f);
-
-				// Rotate
-				rotate += Input.GetAxis("Mouse X") * rotateSpeed;
-				transform.rotation = Quaternion.Euler(0, rotate, 0);
+				UpdateCameraTileRotation();
 			}
 
 			// Move
@@ -81,6 +93,17 @@ namespace ClashOfDefense.Game.Control
 			float tiltRad = tilt * Mathf.Deg2Rad;
 			cameraTransform.localPosition = new Vector3(0, Mathf.Sin(tiltRad), -Mathf.Cos(tiltRad)) * zoom;
 			cameraTransform.LookAt(transform.position + Vector3.up * 2f);
+		}
+
+		private void UpdateCameraTileRotation()
+		{
+			// Tilt
+			tilt += Input.GetAxis("Mouse Y") * -rotateSpeed;
+			tilt = Mathf.Clamp(tilt, 30, 89f);
+
+			// Rotate
+			rotate += Input.GetAxis("Mouse X") * rotateSpeed;
+			transform.rotation = Quaternion.Euler(0, rotate, 0);
 		}
 
 		public void SetBounds(Vector3 bounds)

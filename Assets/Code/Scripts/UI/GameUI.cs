@@ -3,19 +3,37 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
-
+using UnityEngine.EventSystems;
 
 namespace ClashOfDefense.Game.UI
 {
-	public class GameUI : MonoBehaviour
+	using Base;
+	public class GameUI : GameUIBase
 	{
 		[SerializeField] private Button battleButton;
 
-		public event UnityAction onBattleButtonClick;
-
 		private void Start()
 		{
-			battleButton.onClick.AddListener(() => onBattleButtonClick?.Invoke());
+			battleButton.onClick.AddListener(OnBattleButtonClick);
+			GameManager.Instance.OnGameStateChange += OnGameStateChange;
+		}
+
+		private void OnGameStateChange(GameState gameState)
+		{
+			switch (gameState)
+			{
+				case GameState.Building:
+					battleButton.interactable = true;
+					break;
+				case GameState.Playing:
+					battleButton.interactable = false;
+					break;
+				case GameState.Ended:
+					battleButton.interactable = false;
+					break;
+				default:
+					break;
+			}
 		}
 	}
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace ClashOfDefense.Game.Combat
 {
@@ -7,12 +8,12 @@ namespace ClashOfDefense.Game.Combat
 	{
 		public int damage;
 		public int range;
-		public Projectile projectile;
 
 		[Header("Attack")]
 		public float cooldown;
 		private float lastAttack;
 		private bool isAttacking;
+		public bool IsAtacking { get => isAttacking; }
 
 		[Header("Burst")]
 		public int shots;
@@ -20,7 +21,9 @@ namespace ClashOfDefense.Game.Combat
 		private float lastShotTime;
 		private int shotsRemain;
 
-		public bool TryAttack()
+		public event UnityAction OnAttack;
+
+		public void TryAttack()
 		{
 			if (!isAttacking)
 			{
@@ -41,10 +44,9 @@ namespace ClashOfDefense.Game.Combat
 					{
 						isAttacking = false;
 					}
-					return true;
+					OnAttack?.Invoke();
 				}
 			}
-			return false;
 		}
 	}
 }

@@ -10,9 +10,15 @@ namespace ClashOfDefense.Game.Entity
 	public class AttackEntityAI : EntityAI
 	{
 		public Targeting targeting;
+		public Projectile projectilePrefab;
 		public Transform muzzle;
 
 		private Building targetingBuilding;
+
+		private void Awake()
+		{
+			targeting.OnAttack += SpawnProjectile;
+		}
 
 		protected override void FixedUpdate()
 		{
@@ -33,8 +39,8 @@ namespace ClashOfDefense.Game.Entity
 				{
 					continue;
 				}
-				float distance = Vector3.Distance(transform.position, building.transform.position);
-				if (distance < targeting.range * tileSize && distance < minDistance)
+				float distance = Vector3.Distance(transform.position, building.CentralPosition);
+				if (distance < targeting.range * GameManager.Instance.tileSize && distance < minDistance)
 				{
 					targetingBuilding = building;
 					minDistance = distance;
@@ -43,7 +49,7 @@ namespace ClashOfDefense.Game.Entity
 			if (targetingBuilding != null)
 			{
 				this.paused = true;
-				targetingBuilding.OnDeath += () =>
+				targetingBuilding.OnDestroyed += () =>
 				{
 					this.paused = false;
 					targetingBuilding = null;
@@ -53,31 +59,23 @@ namespace ClashOfDefense.Game.Entity
 
 		private void AttackBuilding()
 		{
-			if (targeting.TryAttack())
+			targeting.TryAttack();
+		}
+
+		private void SpawnProjectile()
+		{
+			Projectile projectile = Instantiate(projectilePrefab, muzzle.position, Quaternion.LookRotation(targetingBuilding.CentralPosition - transform.position));
+			projectile.OnHit += (Collider other) =>
 			{
-				Projectile projectile = Instantiate(targeting.projectile, muzzle.position, Quaternion.LookRotation(targetingBuilding.transform.position - transform.position));
-				projectile.OnHit += (Collider other) =>
+				if (other.gameObject.layer == LayerManager.Structure)
 				{
-					Debug.Log(LayerManager.Structure);
-					if (other.gameObject.layer == LayerManager.Structure)
+					Building building = other.GetComponentInParent<Building>();
+					if (building != null)
 					{
-						Building building = other.GetComponentInParent<Building>();
-						if (building != null)
-						{
-							Debug.Log("Hit building");
-							building.DealDamage(targeting.damage);
-						}
-						else
-						{
-							Debug.Log($"Hit something else, {other.gameObject.name}");
-						}
+						building.DealDamage(targeting.damage);
 					}
-					else
-					{
-						Debug.Log($"Hit something else then structure, {other.gameObject.layer}");
-					}
-				};
-			}
+				}
+			};
 		}
 	}
 }

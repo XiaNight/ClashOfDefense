@@ -8,10 +8,14 @@ namespace ClashOfDefense.Game.Entity
 	[CreateAssetMenu(fileName = "BatchData", menuName = "ClashOfDefense/BatchData")]
 	public class BatchData : ScriptableObject
 	{
-		public SpawnData[] enemies;
-		public float spawnInterval;
-		public EnemyType enemyType;
-		public SpawnPattern spawnPattern;
+		[SerializeField] private SpawnData[] enemies;
+		public SpawnData[] Enemies { get { return enemies; } }
+		[SerializeField] private float spawnInterval;
+		public float SpawnInterval { get { return spawnInterval; } }
+		[SerializeField] private EnemyType enemyType;
+		public EnemyType Type { get { return enemyType; } }
+		[SerializeField] private SpawnPattern spawnPattern;
+		public SpawnPattern SpawningPattern { get { return spawnPattern; } }
 
 		[System.Serializable]
 		public struct SpawnData

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61879ceefabe6254081213f4ff6dee6e, type: 3}
+  m_Name: GatelingGun
+  m_EditorClassIdentifier: 
+  <structureName>k__BackingField: Gateling
+  <icon>k__BackingField: {fileID: 21300000, guid: 61405e01637670146abc4bce198eabdb,
+    type: 3}
+  <levels>k__BackingField:
+  - maxHealth: 100
+    prefab: {fileID: 4829205252696179626, guid: dafa8b0d5cf1aad4a9d13916692240e8,
+      type: 3}
+    upgradeCostToNextLevel: 100
+  - maxHealth: 200
+    prefab: {fileID: 8960938831319036792, guid: 3099873bd78ef1c42a7e9a7fd5352b4e,
+      type: 3}
+    upgradeCostToNextLevel: 300
+  - maxHealth: 350
+    prefab: {fileID: 5021870071572004525, guid: 2cb029209a39983428009cff54a31f72,
+      type: 3}
+    upgradeCostToNextLevel: 1000
+  regenerateHealth: 1

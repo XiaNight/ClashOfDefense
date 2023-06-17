@@ -180,7 +180,7 @@ namespace ClashOfDefense.Game.Environment
 
 		public Vector2Int WorldToMapPosition(Vector3 position)
 		{
-			return new Vector2Int(Mathf.FloorToInt(position.x / tileSize), Mathf.FloorToInt(position.z / tileSize));
+			return new Vector2Int(Mathf.RoundToInt(position.x / tileSize), Mathf.RoundToInt(position.z / tileSize));
 		}
 
 		public bool IsInMap(Vector2Int position)

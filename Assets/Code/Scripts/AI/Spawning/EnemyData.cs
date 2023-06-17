@@ -10,7 +10,7 @@ namespace ClashOfDefense.Game.Entity
 
 		[Header("Movement")]
 		public float speed;
-		public float health;
+		public int health;
 		public Costs.Layer pathFindLayer;
 	}
 }
