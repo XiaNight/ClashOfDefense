@@ -28,6 +28,8 @@ namespace ClashOfDefense.Game.UI
 		[field: SerializeField] public BuildingData selectedBuildingData { get; private set; }
 		public event UnityAction<BuildingData> OnBuildingSelected;
 
+		private List<BuildingSelectionContentEntry> spawnedEntries = new List<BuildingSelectionContentEntry>();
+
 		private void Start()
 		{
 			// clear content
@@ -45,7 +47,9 @@ namespace ClashOfDefense.Game.UI
 				{
 					selectedBuildingData = buildingData;
 					OnBuildingSelected?.Invoke(buildingData);
+					spawnedEntries.ForEach((entry) => entry.Disable());
 				};
+				spawnedEntries.Add(contentEntry);
 			}
 		}
 	}

@@ -6,6 +6,9 @@ namespace ClashOfDefense.Game.Util
 	{
 		public bool isFlipped = false;
 		public bool lockAxis = false;
+		public bool cameraRotation = false;
+		public bool dynamicSize = false;
+		public float scaleMultiplier = 1f;
 		private Camera mainCamera;
 
 		private void Awake()
@@ -14,7 +17,15 @@ namespace ClashOfDefense.Game.Util
 		}
 		private void Update()
 		{
-			Vector3 direction = mainCamera.transform.position - transform.position;
+			Vector3 direction;
+			if (cameraRotation)
+			{
+				direction = mainCamera.transform.forward;
+			}
+			else
+			{
+				direction = mainCamera.transform.position - transform.position;
+			}
 			if (lockAxis)
 			{
 				direction.y = 0;
@@ -24,6 +35,11 @@ namespace ClashOfDefense.Game.Util
 				direction = -direction;
 			}
 			transform.rotation = Quaternion.LookRotation(direction);
+
+			if (dynamicSize)
+			{
+				transform.localScale = Vector3.one * Vector3.Distance(transform.position, mainCamera.transform.position) * scaleMultiplier;
+			}
 		}
 	}
 }

@@ -15271,7 +15271,7 @@ Transform:
   m_GameObject: {fileID: 1361999888442337605}
   m_LocalRotation: {x: 0.000000021855694, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1363885203692396499}
@@ -15295,6 +15295,7 @@ MonoBehaviour:
   centralPosition: {x: 0, y: 0.5, z: 0}
   data: {fileID: 0}
   health: 0
+  veterancy: 0
   rotationBase: {fileID: 1363787365640111483}
   tiltBody: {fileID: 1365551488615731567}
   barrel: {fileID: 1363979347227688211}

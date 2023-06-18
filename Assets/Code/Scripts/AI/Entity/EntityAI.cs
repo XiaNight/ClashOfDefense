@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 namespace ClashOfDefense.Game.Entity
 {
+	using Base;
 	using Helper;
 	using Structure;
 
@@ -20,10 +21,12 @@ namespace ClashOfDefense.Game.Entity
 
 		[Header("Settings")]
 		[SerializeField] protected EnemyData enemyData;
+		public EnemyData Data { get => enemyData; }
 		public Vector3 CentralPosition { get => transform.position + centralPosition; }
 
 		[Header("Status")]
 		[SerializeField] protected bool paused = false;
+		[SerializeField] protected bool pauseTreaverse = false;
 		[SerializeField] protected int health;
 		protected Vector2Int tilePosition;
 		public Vector2Int TilePosition { get => tilePosition; }
@@ -33,9 +36,26 @@ namespace ClashOfDefense.Game.Entity
 		public event UnityAction OnPathEnded;
 		public event UnityAction<EntityAI> OnDeath;
 
+		protected virtual void Awake()
+		{
+			GameManager.Instance.OnGameStateChange += (state) =>
+			{
+				switch (state)
+				{
+					case GameState.Ended:
+					case GameState.Paused:
+						paused = true;
+						break;
+					case GameState.Playing:
+						paused = false;
+						break;
+				}
+			};
+		}
+
 		protected virtual void FixedUpdate()
 		{
-			if (!paused)
+			if (!paused && !pauseTreaverse)
 			{
 				FollowPathFind();
 			}
@@ -71,7 +91,7 @@ namespace ClashOfDefense.Game.Entity
 					{
 						pathFinded = null;
 						currentPathIndex = 0;
-						paused = true;
+						pauseTreaverse = true;
 						OnPathEnded?.Invoke();
 						return;
 					}

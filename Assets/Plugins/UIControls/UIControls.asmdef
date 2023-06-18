@@ -1,9 +1,8 @@
 {
-    "name": "ClashOfDefense",
+    "name": "UIControls",
     "rootNamespace": "",
     "references": [
-        "GUID:6055be8ebefd69e48b49212b09b47b2f",
-        "GUID:67cd3dba6cfa47d48a723106840d10d0"
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

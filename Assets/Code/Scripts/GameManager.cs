@@ -15,7 +15,7 @@ namespace ClashOfDefense.Game
 
 	public class GameManager : MonoBehaviour
 	{
-		// Singleton
+		#region Singleton
 		private static GameManager instance;
 		public static GameManager Instance
 		{
@@ -28,6 +28,8 @@ namespace ClashOfDefense.Game
 				return instance;
 			}
 		}
+		#endregion
+		#region Parameters
 
 		[Header("Map Settings")]
 		[SerializeField] private Vector2Int mapSize;
@@ -39,11 +41,14 @@ namespace ClashOfDefense.Game
 		[SerializeField] private EnemyLevelData enemyLevelData;
 		[SerializeField] private int currentRoundIndex;
 
-		[Header("Building Data")]
+		[Header("Building")]
 		[SerializeField] private BuildingData baseBuildingData;
 		[SerializeField] private List<Building> spawnedBuildings;
 
+
 		[Header("Status")]
+		[SerializeField] private int money;
+		public int Money { get { return money; } }
 		[SerializeField] private GameState gameState;
 		[SerializeField] private PlayerControlState playerControlState;
 		public List<EntityAI> spawnedEnemies { get; private set; }
@@ -56,14 +61,23 @@ namespace ClashOfDefense.Game
 		public event UnityAction<GameState> OnGameStateChange;
 
 		private Vector2Int mapCenter;
+		private Building previewingBuilding;
+
+		#endregion Parameters
+		#region Unity Functions
+
 		private void Awake()
 		{
 			// use system time as seed
 			Random.InitState(System.DateTime.Now.Millisecond);
 			CameraControl.Instance.onMouseClicked += OnMouseClicked;
 
-			GameUIBase.Instance.onBattleButtonClick += OnBattleButtonClick;
+			GameUI.Instance.onBattleButtonClick += OnBattleButtonClick;
 			BuildingSelectionManager.Instance.OnBuildingSelected += OnBuildingSelected;
+			BuildingPreview.Instance.OnAccept += OnBuildingPreviewAccept;
+			BuildingPreview.Instance.OnCancel += OnBuildingPreviewCancel;
+
+			money = 2000;
 		}
 
 		private void Start()
@@ -75,6 +89,7 @@ namespace ClashOfDefense.Game
 		{
 
 		}
+		#endregion
 
 		private void OnBuildingSelected(BuildingData buildingData)
 		{
@@ -99,17 +114,7 @@ namespace ClashOfDefense.Game
 				{
 					if (button == 0)
 					{
-						switch (gameState)
-						{
-							case GameState.Building:
-								if (playerControlState == PlayerControlState.Building)
-								{
-									SpawnStructure(BuildingSelectionManager.Instance.selectedBuildingData, mapPosition);
-								}
-								break;
-							case GameState.Playing:
-								break;
-						}
+						MainClickOnMap(mapPosition);
 					}
 					if (button == 1)
 					{
@@ -119,6 +124,132 @@ namespace ClashOfDefense.Game
 			}
 		}
 
+		private void MainClickOnMap(Vector2Int mapPosition)
+		{
+			switch (gameState)
+			{
+				case GameState.Building:
+					if (playerControlState == PlayerControlState.Building)
+					{
+						BuildingData selectedBuilding = BuildingSelectionManager.Instance.selectedBuildingData;
+						if (selectedBuilding != null)
+						{
+							if (previewingBuilding != null)
+							{
+								// Previewing
+								SetBuildingPosition(previewingBuilding, mapPosition);
+								BuildingPreview.Instance.UpdateData();
+								BuildingPreview.Instance.SetAcceptable(!IsPositionOccupied(mapPosition));
+							}
+							else
+							{
+								// Putting a new preview building
+								previewingBuilding = InstantiateBuildingData(selectedBuilding);
+								SetBuildingPosition(previewingBuilding, mapPosition);
+								BuildingPreview.Instance.Setup(previewingBuilding);
+								BuildingPreview.Instance.SetAcceptable(!IsPositionOccupied(mapPosition));
+							}
+						}
+					}
+					break;
+				case GameState.Playing:
+					break;
+			}
+		}
+
+		private void OnBuildingPreviewAccept()
+		{
+			if (previewingBuilding == null)
+			{
+				return;
+			}
+			int cost = previewingBuilding.Data.levels[0].cost;
+			if (cost < money)
+			{
+				return;
+			}
+			spawnedBuildings.Add(previewingBuilding);
+			money -= cost;
+			previewingBuilding = null;
+			BuildingPreview.Instance.SetState(false);
+		}
+
+		private void OnBuildingPreviewCancel()
+		{
+			if (previewingBuilding != null)
+			{
+				previewingBuilding.Destroy();
+				previewingBuilding = null;
+			}
+		}
+
+		private void ClearAll()
+		{
+			currentRoundIndex = 0;
+			ClearAllBuildings();
+			KillAllEnemies();
+			pathFindMap.Clear();
+			map.Clear();
+			StopAllSpawnCoroutines();
+			SetGameState(GameState.Instantiating);
+		}
+
+		#region Building
+
+		/// <summary>
+		/// Spawn a building from building data at position
+		/// </summary>
+		/// <param name="buildingData">BuildingData</param>
+		/// <param name="position">Position</param>
+		/// <param name="buildingLevelIndex">Index of the building's level</param>
+		/// <returns>Spawned building</returns>
+		private Building SpawnBuilding(BuildingData buildingData, Vector2Int position, int buildingLevelIndex = 0)
+		{
+			if (buildingData == null)
+			{
+				return null;
+			}
+			if (IsPositionOccupied(position))
+			{
+				return null;
+			}
+			Building building = InstantiateBuildingData(buildingData, buildingLevelIndex);
+			SetBuildingPosition(building, position);
+			spawnedBuildings.Add(building);
+			return building;
+		}
+
+		private bool IsPositionOccupied(Vector2Int tilePosition)
+		{
+			for (int i = 0; i < spawnedBuildings.Count; i++)
+			{
+				if (spawnedBuildings[i].tilePosition == tilePosition)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private void SetBuildingPosition(Building building, Vector2Int position)
+		{
+			Vector3 worldPosition = Helper.MapPositionTransformer.MapToWorldPosition(position, tileSize);
+			building.transform.position = worldPosition;
+			building.SetPosition(position);
+		}
+
+		private Building InstantiateBuildingData(BuildingData buildingData, int buildingLevelIndex = 0)
+		{
+			if (buildingData == null)
+			{
+				return null;
+			}
+			Building buildingPrefab = buildingData.levels[buildingLevelIndex].prefab;
+			Building building = Instantiate(buildingPrefab, spawnedContainer);
+			building.Setup(Instantiate(buildingData));
+			return building;
+		}
+
 		private void ResetAllBuildings()
 		{
 			for (int i = 0; i < spawnedBuildings.Count; i++)
@@ -126,6 +257,27 @@ namespace ClashOfDefense.Game
 				spawnedBuildings[i].Reset();
 			}
 		}
+
+		/// <summary>
+		/// Destroy all buildings and clears spawnedBuildings list
+		/// </summary>
+		private void ClearAllBuildings()
+		{
+			if (spawnedBuildings != null)
+			{
+				foreach (Building building in spawnedBuildings)
+				{
+					if (building != null)
+					{
+						Destroy(building.gameObject);
+					}
+				}
+				spawnedBuildings.Clear();
+			}
+		}
+
+		#endregion
+		#region Map
 
 		private void GenerateNewMap()
 		{
@@ -142,40 +294,15 @@ namespace ClashOfDefense.Game
 			CameraControl.Instance.SetBounds(new Vector3(mapSize.x, 100, mapSize.y) * tileSize);
 		}
 
-		private void ClearAll()
-		{
-			currentRoundIndex = 0;
-			ClearAllBuildings();
-			KillAllEnemies();
-			pathFindMap.Clear();
-			map.Clear();
-			StopAllSpawnCoroutines();
-			SetGameState(GameState.Instantiating);
-		}
-
 		private void MapGenerated()
 		{
 			TransferNodeCost();
-			SpawnStructure(baseBuildingData, mapCenter);
+			SpawnBuilding(baseBuildingData, mapCenter).OnDestroyed += BaseDestroyed;
 		}
 
-		/// <summary>
-		/// Spawn a building from building data at position
-		/// </summary>
-		/// <param name="buildingData">BuildingData</param>
-		/// <param name="position">Position</param>
-		/// <param name="buildingLevelIndex">Index of the building's level</param>
-		private void SpawnStructure(BuildingData buildingData, Vector2Int position, int buildingLevelIndex = 0)
+		private void BaseDestroyed()
 		{
-			if (buildingData == null)
-			{
-				return;
-			}
-			Building buildingPrefab = buildingData.levels[buildingLevelIndex].prefab;
-			Vector3 worldPosition = Helper.MapPositionTransformer.MapToWorldPosition(position, tileSize);
-			Building building = Instantiate(buildingPrefab, worldPosition, Quaternion.identity, spawnedContainer);
-			building.Setup(Instantiate(buildingData), position);
-			spawnedBuildings.Add(building);
+			SetGameState(GameState.Ended);
 		}
 
 		private void TransferNodeCost()
@@ -188,6 +315,8 @@ namespace ClashOfDefense.Game
 			SetGameState(GameState.Building);
 		}
 
+		#endregion
+		#region Enemy
 		/// <summary>
 		/// Start spawning a round of enemies
 		/// </summary>
@@ -223,24 +352,6 @@ namespace ClashOfDefense.Game
 					StopCoroutine(coroutine);
 				}
 				spawnCoroutines.Clear();
-			}
-		}
-
-		/// <summary>
-		/// Destroy all buildings and clears spawnedBuildings list
-		/// </summary>
-		private void ClearAllBuildings()
-		{
-			if (spawnedBuildings != null)
-			{
-				foreach (Building building in spawnedBuildings)
-				{
-					if (building != null)
-					{
-						Destroy(building.gameObject);
-					}
-				}
-				spawnedBuildings.Clear();
 			}
 		}
 
@@ -295,6 +406,7 @@ namespace ClashOfDefense.Game
 		{
 			spawnedEnemies.Remove(enemy);
 			OnEnemyDeath?.Invoke(enemy);
+			money += enemy.Data.killReward;
 			if (spawnedEnemies.Count == 0)
 			{
 				currentRoundIndex++;
@@ -322,6 +434,8 @@ namespace ClashOfDefense.Game
 					return Vector2Int.zero;
 			}
 		}
+
+		#endregion
 
 		private void OnDrawGizmosSelected()
 		{

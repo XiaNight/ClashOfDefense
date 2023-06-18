@@ -15,15 +15,16 @@ namespace ClashOfDefense.Game.Entity
 
 		private Building targetingBuilding;
 
-		private void Awake()
+		protected override void Awake()
 		{
+			base.Awake();
 			targeting.OnAttack += SpawnProjectile;
 		}
 
 		protected override void FixedUpdate()
 		{
 			base.FixedUpdate();
-			if (targetingBuilding != null)
+			if (!paused && targetingBuilding != null)
 			{
 				AttackBuilding();
 			}
@@ -48,10 +49,10 @@ namespace ClashOfDefense.Game.Entity
 			}
 			if (targetingBuilding != null)
 			{
-				this.paused = true;
+				this.pauseTreaverse = true;
 				targetingBuilding.OnDestroyed += () =>
 				{
-					this.paused = false;
+					this.pauseTreaverse = false;
 					targetingBuilding = null;
 				};
 			}

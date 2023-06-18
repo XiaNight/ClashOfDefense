@@ -17,7 +17,7 @@ namespace ClashOfDefense.Game.Structure
 		{
 			public int maxHealth;
 			public Building prefab;
-			public int upgradeCostToNextLevel;
+			public int cost;
 		}
 
 		protected virtual void Reset()

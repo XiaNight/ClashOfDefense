@@ -13,11 +13,12 @@ namespace ClashOfDefense.Game.Structure
 		[SerializeField] protected Vector3 centralPosition = new Vector3(0, 0.5f, 0);
 		public Vector3 CentralPosition { get => transform.position + centralPosition; }
 		[SerializeField] protected BuildingData data;
+		public BuildingData Data { get => data; }
 
 		[Header("Status")]
 		[SerializeField] protected int health;
 		[SerializeField] protected int veterancy;
-		protected Vector2Int tilePosition;
+		public Vector2Int tilePosition { get; protected set; }
 		protected int currentLevelIndex;
 
 		public event UnityAction OnDestroyed;
@@ -31,6 +32,15 @@ namespace ClashOfDefense.Game.Structure
 		public virtual void Setup(BuildingData dataInstance, Vector2Int tilePosition)
 		{
 			data = dataInstance;
+			this.tilePosition = tilePosition;
+		}
+		public virtual void Setup(BuildingData dataInstance)
+		{
+			data = dataInstance;
+		}
+
+		public virtual void SetPosition(Vector2Int tilePosition)
+		{
 			this.tilePosition = tilePosition;
 		}
 
@@ -57,6 +67,12 @@ namespace ClashOfDefense.Game.Structure
 				OnDestroyed?.Invoke();
 				Destroy(gameObject);
 			}
+		}
+
+		public void Destroy()
+		{
+			OnDestroyed?.Invoke();
+			Destroy(gameObject);
 		}
 
 		private void OnDestroy()

@@ -6,24 +6,36 @@ using UnityEngine.Events;
 using TMPro;
 using UnityEngine.EventSystems;
 
-public class BuildingSelectionContentEntry : MonoBehaviour
+namespace ClashOfDefense.Game
 {
-	[SerializeField] private Toggle toggleButton;
-	[SerializeField] private Image iconImage;
-	[SerializeField] private TextMeshProUGUI nameText;
-
-	public event UnityAction OnClick;
-
-	public void Setup(Sprite icon, string name)
+	public class BuildingSelectionContentEntry : MonoBehaviour
 	{
-		toggleButton.onValueChanged.AddListener((value) =>
+		[SerializeField] private ToggleableCollection toggleableCollection;
+		[SerializeField] private Button toggleButton;
+		[SerializeField] private Image iconImage;
+		[SerializeField] private TextMeshProUGUI nameText;
+
+		public event UnityAction OnClick;
+
+		public void Setup(Sprite icon, string name)
 		{
-			if (value)
+			toggleButton.onClick.AddListener(() =>
 			{
 				OnClick?.Invoke();
-			}
-		});
-		iconImage.sprite = icon;
-		nameText.text = name;
+				toggleableCollection.Enable();
+			});
+			iconImage.sprite = icon;
+			nameText.text = name;
+		}
+
+		public void Disable()
+		{
+			toggleableCollection.Disable();
+		}
+
+		public void SetInteractable(bool interactable)
+		{
+			toggleButton.interactable = interactable;
+		}
 	}
 }

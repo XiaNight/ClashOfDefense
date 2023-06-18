@@ -124,7 +124,8 @@ namespace ClashOfDefense.Game.Structure
 
 		private void SpawnProjectile()
 		{
-			Projectile projectile = Instantiate(projectilePrefab, barrelSetting.GetBarrel().position, Quaternion.LookRotation(targetEntity.transform.position - transform.position));
+			Transform barrel = barrelSetting.GetBarrel();
+			Projectile projectile = Instantiate(projectilePrefab, barrel.position, Quaternion.LookRotation(targetEntity.CentralPosition - barrel.position));
 			projectile.OnHit += OnProjectileHit;
 			if (muzzleFlashMode == MuzzleFlashMode.PlayWhenFired)
 			{

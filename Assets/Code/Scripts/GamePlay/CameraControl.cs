@@ -34,7 +34,7 @@ namespace ClashOfDefense.Game.Control
 		[SerializeField] private Vector3 bounds = new Vector3(100, 100, 100);
 
 		private float zoom = 50f;
-		private float rotate = 45f;
+		private float rotate = 0f;
 		private float tilt = 60f;
 
 		public event UnityAction<int, Vector3> onMouseClicked;
@@ -42,6 +42,9 @@ namespace ClashOfDefense.Game.Control
 		private void Start()
 		{
 			UpdateCameraTileRotation();
+
+			// move camera to center
+			transform.position = new Vector3(bounds.x / 2, 0, bounds.z / 2);
 		}
 
 		private void Update()
