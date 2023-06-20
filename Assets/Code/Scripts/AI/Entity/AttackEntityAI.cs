@@ -40,6 +40,11 @@ namespace ClashOfDefense.Game.Entity
 				{
 					continue;
 				}
+				if (building.IsDead)
+				{
+					continue;
+				}
+
 				float distance = Vector3.Distance(transform.position, building.CentralPosition);
 				if (distance < targeting.range * GameManager.Instance.tileSize && distance < minDistance)
 				{
@@ -50,7 +55,7 @@ namespace ClashOfDefense.Game.Entity
 			if (targetingBuilding != null)
 			{
 				this.pauseTreaverse = true;
-				targetingBuilding.OnDestroyed += () =>
+				targetingBuilding.OnDead += () =>
 				{
 					this.pauseTreaverse = false;
 					targetingBuilding = null;

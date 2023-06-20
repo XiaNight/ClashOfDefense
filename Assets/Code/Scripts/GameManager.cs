@@ -52,6 +52,7 @@ namespace ClashOfDefense.Game
 		[SerializeField] private GameState gameState;
 		[SerializeField] private PlayerControlState playerControlState;
 		public List<EntityAI> spawnedEnemies { get; private set; }
+		public int enemyAlive { get; private set; }
 		private List<Coroutine> spawnCoroutines;
 
 		[Header("Others")]
@@ -59,6 +60,7 @@ namespace ClashOfDefense.Game
 		public event UnityAction<EntityAI, Vector2Int> OnEnemyTreaversedTile;
 		public event UnityAction<EntityAI> OnEnemyDeath;
 		public event UnityAction<GameState> OnGameStateChange;
+		public event UnityAction<int> OnMoneyChanged;
 
 		private Vector2Int mapCenter;
 		private Building previewingBuilding;
@@ -77,7 +79,7 @@ namespace ClashOfDefense.Game
 			BuildingPreview.Instance.OnAccept += OnBuildingPreviewAccept;
 			BuildingPreview.Instance.OnCancel += OnBuildingPreviewCancel;
 
-			money = 2000;
+			AddMoney(2000);
 		}
 
 		private void Start()
@@ -90,6 +92,7 @@ namespace ClashOfDefense.Game
 
 		}
 		#endregion
+		#region User Control
 
 		private void OnBuildingSelected(BuildingData buildingData)
 		{
@@ -100,8 +103,8 @@ namespace ClashOfDefense.Game
 		{
 			if (gameState == GameState.Building)
 			{
-				SetGameState(GameState.Playing);
 				SpawnRound();
+				SetGameState(GameState.Playing);
 			}
 		}
 
@@ -164,12 +167,13 @@ namespace ClashOfDefense.Game
 				return;
 			}
 			int cost = previewingBuilding.Data.levels[0].cost;
-			if (cost < money)
+			if (cost > money)
 			{
+				Debug.Log("Not enough money");
 				return;
 			}
-			spawnedBuildings.Add(previewingBuilding);
-			money -= cost;
+			AddBuildingToList(previewingBuilding);
+			SpendMoney(cost);
 			previewingBuilding = null;
 			BuildingPreview.Instance.SetState(false);
 		}
@@ -178,22 +182,13 @@ namespace ClashOfDefense.Game
 		{
 			if (previewingBuilding != null)
 			{
-				previewingBuilding.Destroy();
+				previewingBuilding.Delete();
 				previewingBuilding = null;
 			}
+			BuildingPreview.Instance.SetState(false);
 		}
 
-		private void ClearAll()
-		{
-			currentRoundIndex = 0;
-			ClearAllBuildings();
-			KillAllEnemies();
-			pathFindMap.Clear();
-			map.Clear();
-			StopAllSpawnCoroutines();
-			SetGameState(GameState.Instantiating);
-		}
-
+		#endregion
 		#region Building
 
 		/// <summary>
@@ -215,7 +210,7 @@ namespace ClashOfDefense.Game
 			}
 			Building building = InstantiateBuildingData(buildingData, buildingLevelIndex);
 			SetBuildingPosition(building, position);
-			spawnedBuildings.Add(building);
+			AddBuildingToList(building);
 			return building;
 		}
 
@@ -250,14 +245,6 @@ namespace ClashOfDefense.Game
 			return building;
 		}
 
-		private void ResetAllBuildings()
-		{
-			for (int i = 0; i < spawnedBuildings.Count; i++)
-			{
-				spawnedBuildings[i].Reset();
-			}
-		}
-
 		/// <summary>
 		/// Destroy all buildings and clears spawnedBuildings list
 		/// </summary>
@@ -273,6 +260,26 @@ namespace ClashOfDefense.Game
 					}
 				}
 				spawnedBuildings.Clear();
+			}
+		}
+
+		private void AddBuildingToList(Building building)
+		{
+			if (building != null)
+			{
+				spawnedBuildings.Add(building);
+				building.OnDeleted += () =>
+				{
+					RemoveBuildingFromList(building);
+				};
+			}
+		}
+
+		private void RemoveBuildingFromList(Building building)
+		{
+			if (building != null)
+			{
+				spawnedBuildings.Remove(building);
 			}
 		}
 
@@ -297,7 +304,7 @@ namespace ClashOfDefense.Game
 		private void MapGenerated()
 		{
 			TransferNodeCost();
-			SpawnBuilding(baseBuildingData, mapCenter).OnDestroyed += BaseDestroyed;
+			SpawnBuilding(baseBuildingData, mapCenter).OnDead += BaseDestroyed;
 		}
 
 		private void BaseDestroyed()
@@ -333,6 +340,7 @@ namespace ClashOfDefense.Game
 				spawnedEnemies = new List<EntityAI>();
 			}
 
+			enemyAlive = 0;
 			RoundData currentRound = enemyLevelData.rounds[currentRoundIndex];
 			foreach (BatchData batchData in currentRound.batches)
 			{
@@ -380,33 +388,45 @@ namespace ClashOfDefense.Game
 		/// <returns></returns>
 		private IEnumerator SpawnBatchEnumerator(BatchData batchData)
 		{
+			// Calculate enemy count
+			foreach (BatchData.SpawnData spawnData in batchData.Enemies)
+			{
+				enemyAlive += spawnData.enemyCount;
+			}
+
 			// spawn enemy
 			foreach (BatchData.SpawnData spawnData in batchData.Enemies)
 			{
-				for (int i = 0; i < spawnData.count; i++)
+				for (int i = 0; i < spawnData.enemyCount; i++)
 				{
-					Vector2Int mapSpawnPosition = DeterminSpawnPosition(batchData.SpawningPattern);
-					Vector3 worldSpawnPosition = Helper.MapPositionTransformer.MapToWorldPosition(mapSpawnPosition, tileSize);
-					EntityAI enemy = Instantiate(spawnData.enemyData.entityPrefab, worldSpawnPosition, Quaternion.identity, spawnedContainer);
-					enemy.OnTreaversedTile += (pos) =>
-					{
-						enemy.ProcessStructureData(spawnedBuildings);
-						OnEnemyTreaversedTile?.Invoke(enemy, pos);
-					};
-					enemy.OnDeath += ProcessEnemyDeath;
-					spawnedEnemies.Add(enemy);
-
-					pathFindMap.FindPathAsync(mapSpawnPosition, mapCenter, spawnData.enemyData.pathFindLayer, (path) => { enemy.Setup(spawnData.enemyData, path); });
+					SpawnEnemy(spawnData, batchData.SpawningPattern);
 					yield return new WaitForSeconds(batchData.SpawnInterval);
 				}
 			}
 		}
 
+		private void SpawnEnemy(BatchData.SpawnData spawnData, BatchData.SpawnPattern pattern)
+		{
+			Debug.Log("Spawn enemy");
+			Vector2Int mapSpawnPosition = DeterminSpawnPosition(pattern);
+			Vector3 worldSpawnPosition = Helper.MapPositionTransformer.MapToWorldPosition(mapSpawnPosition, tileSize);
+			EntityAI enemy = Instantiate(spawnData.enemyData.entityPrefab, worldSpawnPosition, Quaternion.identity, spawnedContainer);
+			enemy.OnTreaversedTile += (pos) =>
+			{
+				enemy.ProcessStructureData(spawnedBuildings);
+				OnEnemyTreaversedTile?.Invoke(enemy, pos);
+			};
+			enemy.OnDeath += ProcessEnemyDeath;
+			spawnedEnemies.Add(enemy);
+			pathFindMap.FindPathAsync(mapSpawnPosition, mapCenter, spawnData.enemyData.pathFindLayer, (path) => { enemy.Setup(spawnData.enemyData, path); });
+		}
+
 		private void ProcessEnemyDeath(EntityAI enemy)
 		{
+			enemyAlive--;
 			spawnedEnemies.Remove(enemy);
 			OnEnemyDeath?.Invoke(enemy);
-			money += enemy.Data.killReward;
+			AddMoney(enemy.Data.killReward);
 			if (spawnedEnemies.Count == 0)
 			{
 				currentRoundIndex++;
@@ -436,10 +456,38 @@ namespace ClashOfDefense.Game
 		}
 
 		#endregion
+		#region Others
 
-		private void OnDrawGizmosSelected()
+		private void AddMoney(int amount)
 		{
+			if (amount > 0)
+			{
+				money += amount;
+				OnMoneyChanged?.Invoke(money);
+			}
+		}
 
+		private bool SpendMoney(int amount)
+		{
+			if (amount > 0 && money >= amount)
+			{
+				money -= amount;
+				OnMoneyChanged?.Invoke(money);
+				return true;
+			}
+			return false;
+		}
+
+
+		private void ClearAll()
+		{
+			currentRoundIndex = 0;
+			ClearAllBuildings();
+			KillAllEnemies();
+			pathFindMap.Clear();
+			map.Clear();
+			StopAllSpawnCoroutines();
+			SetGameState(GameState.Instantiating);
 		}
 
 		/// <summary>
@@ -450,6 +498,13 @@ namespace ClashOfDefense.Game
 			gameState = state;
 			OnGameStateChange?.Invoke(gameState);
 		}
+
+		private void OnDrawGizmosSelected()
+		{
+
+		}
+
+		#endregion
 
 		/// <summary>
 		/// When gameState in Building state, what is the player doing.

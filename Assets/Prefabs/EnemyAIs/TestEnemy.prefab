@@ -30,6 +30,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3611952297326635131}
+  - {fileID: 3606997584735518000}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -48,14 +49,52 @@ MonoBehaviour:
   speed: 50
   pathFinded: []
   currentPathIndex: 0
-  paused: 0
+  centralPosition: {x: 0, y: 0.5, z: 0}
   enemyData: {fileID: 0}
+  paused: 0
+  pauseTreaverse: 0
+  health: 0
   targeting:
     damage: 10
     range: 7
     cooldown: 2
     shots: 3
     shotInterval: 0.2
+    accuracyCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0.1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 3
+        value: 0.1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 10
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    currentSpread: 0
+    spreadCooldown: 1
   projectilePrefab: {fileID: 459054516602737133, guid: 47180fdf3115b06439f7ce9075616cec,
     type: 3}
   muzzle: {fileID: 3611952297326635131}
@@ -157,3 +196,78 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1001 &1694531685708862659
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 3611952296954029800}
+    m_Modifications:
+    - target: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2705131371357546996, guid: 098374f1b717eac4eaf3441a899b70e4,
+        type: 3}
+      propertyPath: m_Name
+      value: EnemyUI
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 098374f1b717eac4eaf3441a899b70e4, type: 3}
+--- !u!4 &3606997584735518000 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2705131371357546995, guid: 098374f1b717eac4eaf3441a899b70e4,
+    type: 3}
+  m_PrefabInstance: {fileID: 1694531685708862659}
+  m_PrefabAsset: {fileID: 0}

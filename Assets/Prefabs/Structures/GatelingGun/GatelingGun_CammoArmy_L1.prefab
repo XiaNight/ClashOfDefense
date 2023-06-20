@@ -15275,6 +15275,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1363885203692396499}
+  - {fileID: 5492022374200041941}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -15294,8 +15295,8 @@ MonoBehaviour:
     type: 3}
   centralPosition: {x: 0, y: 0.5, z: 0}
   data: {fileID: 0}
-  health: 0
   veterancy: 0
+  isDead: 0
   rotationBase: {fileID: 1363787365640111483}
   tiltBody: {fileID: 1365551488615731567}
   barrel: {fileID: 1363979347227688211}
@@ -15309,6 +15310,41 @@ MonoBehaviour:
     cooldown: 2.5
     shots: 7
     shotInterval: 0.1
+    accuracyCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0.1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 3
+        value: 0.1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 10
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    currentSpread: 0
+    spreadCooldown: 1
   projectilePrefab: {fileID: 4737345217514359475, guid: 53a3b6f135aae6949a2055d40535a968,
     type: 3}
   muzzleFlashMode: 0
@@ -20908,3 +20944,43 @@ Transform:
   m_Father: {fileID: 6860508917230528592}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &5630906957092012127
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 1365305867796651087}
+    m_Modifications:
+    - target: {fileID: 149345888958816650, guid: 6d41812b9632c1945abfd593a4a1aa9a,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 149345888958816650, guid: 6d41812b9632c1945abfd593a4a1aa9a,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 149345888958816650, guid: 6d41812b9632c1945abfd593a4a1aa9a,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 149345888958816650, guid: 6d41812b9632c1945abfd593a4a1aa9a,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 149345888958816653, guid: 6d41812b9632c1945abfd593a4a1aa9a,
+        type: 3}
+      propertyPath: m_Name
+      value: BuildingUI
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6d41812b9632c1945abfd593a4a1aa9a, type: 3}
+--- !u!4 &5492022374200041941 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 149345888958816650, guid: 6d41812b9632c1945abfd593a4a1aa9a,
+    type: 3}
+  m_PrefabInstance: {fileID: 5630906957092012127}
+  m_PrefabAsset: {fileID: 0}

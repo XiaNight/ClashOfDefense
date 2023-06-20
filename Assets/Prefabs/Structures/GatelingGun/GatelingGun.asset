@@ -19,13 +19,13 @@ MonoBehaviour:
   - maxHealth: 100
     prefab: {fileID: 4829205252696179626, guid: dafa8b0d5cf1aad4a9d13916692240e8,
       type: 3}
-    upgradeCostToNextLevel: 100
+    cost: 100
   - maxHealth: 200
     prefab: {fileID: 8960938831319036792, guid: 3099873bd78ef1c42a7e9a7fd5352b4e,
       type: 3}
-    upgradeCostToNextLevel: 300
+    cost: 350
   - maxHealth: 350
     prefab: {fileID: 5021870071572004525, guid: 2cb029209a39983428009cff54a31f72,
       type: 3}
-    upgradeCostToNextLevel: 1000
+    cost: 1000
   regenerateHealth: 1

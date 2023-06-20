@@ -16,4 +16,5 @@ MonoBehaviour:
     type: 3}
   speed: 50
   health: 100
+  killReward: 50
   pathFindLayer: 0

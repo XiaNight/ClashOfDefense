@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using TMPro;
 
 namespace ClashOfDefense.Game.UI
 {
@@ -26,15 +27,54 @@ namespace ClashOfDefense.Game.UI
 		#endregion
 		#region Parameters
 
+		#region Header
+		[Header("Header")]
 		[SerializeField] private Button battleButton;
 		public event UnityAction onBattleButtonClick;
+		[SerializeField] private TMP_Text moneyLabel;
+		[SerializeField] private TMP_Text enemyLeftLabel;
 
 		#endregion
+
+		[Header("Center")]
+		[SerializeField] private TMP_Text defeatText;
+
+		#endregion
+
+		private void Awake()
+		{
+			GameManager.Instance.OnMoneyChanged += (money) =>
+			{
+				// use string format to display the money with a comma every 3 digits
+				moneyLabel.text = string.Format("{0:#,0}", money);
+			};
+			GameManager.Instance.OnEnemyDeath += (enemy) =>
+			{
+				SetEnemyLeftLabel();
+			};
+			GameManager.Instance.OnGameStateChange += (state) =>
+			{
+				switch (state)
+				{
+					case GameState.Ended:
+						defeatText.gameObject.SetActive(true);
+						break;
+					case GameState.Playing:
+						SetEnemyLeftLabel();
+						break;
+				}
+			};
+		}
 
 		private void Start()
 		{
 			battleButton.onClick.AddListener(OnBattleButtonClick);
 			GameManager.Instance.OnGameStateChange += OnGameStateChange;
+		}
+
+		private void SetEnemyLeftLabel()
+		{
+			enemyLeftLabel.text = string.Format("{0:#,0}", GameManager.Instance.enemyAlive);
 		}
 
 		protected void OnBattleButtonClick()

@@ -52,7 +52,7 @@ namespace ClashOfDefense.Game
 		{
 			targetedBuilding = building;
 			SetState(true);
-			building.OnDestroyed += () =>
+			building.OnDead += () =>
 			{
 				SetState(false);
 			};

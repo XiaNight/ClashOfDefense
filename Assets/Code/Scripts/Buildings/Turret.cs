@@ -35,8 +35,9 @@ namespace ClashOfDefense.Game.Structure
 		protected bool canFire = true;
 		protected EntityAI targetEntity;
 
-		private void Awake()
+		protected override void Awake()
 		{
+			base.Awake();
 #if UNITY_EDITOR
 			if (debugMode)
 			{
@@ -125,7 +126,9 @@ namespace ClashOfDefense.Game.Structure
 		private void SpawnProjectile()
 		{
 			Transform barrel = barrelSetting.GetBarrel();
-			Projectile projectile = Instantiate(projectilePrefab, barrel.position, Quaternion.LookRotation(targetEntity.CentralPosition - barrel.position));
+			Vector3 direction = (targetEntity.CentralPosition - barrel.position).normalized;
+			direction = targeting.CalculateSpread(direction);
+			Projectile projectile = Instantiate(projectilePrefab, barrel.position, Quaternion.LookRotation(direction));
 			projectile.OnHit += OnProjectileHit;
 			if (muzzleFlashMode == MuzzleFlashMode.PlayWhenFired)
 			{

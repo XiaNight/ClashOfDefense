@@ -5,8 +5,9 @@ namespace ClashOfDefense.Game.Structure
 {
 	using Entity;
 	using Visuals;
+	using Base;
 
-	public class Building : MonoBehaviour
+	public class Building : MonoBehaviour, IHaveHealth
 	{
 		[Header("Building Settings")]
 		[SerializeField] protected HitMark hitMarkPrefab;
@@ -15,17 +16,36 @@ namespace ClashOfDefense.Game.Structure
 		[SerializeField] protected BuildingData data;
 		public BuildingData Data { get => data; }
 
-		[Header("Status")]
-		[SerializeField] protected int health;
+		[field: Header("Status")]
+		[SerializeField] public int health { get; protected set; }
+		public int Health { get => health; }
+		public int MaxHealth { get => data.levels[currentLevelIndex].maxHealth; }
 		[SerializeField] protected int veterancy;
 		public Vector2Int tilePosition { get; protected set; }
 		protected int currentLevelIndex;
+		[SerializeField] protected bool isDead = false;
+		public bool IsDead { get => isDead; }
 
-		public event UnityAction OnDestroyed;
+
+		public event UnityAction OnDead;
+		public event UnityAction OnDeleted;
+		public event UnityAction<int> OnHealthChanged;
+
+		protected virtual void Awake()
+		{
+			GameManager.Instance.OnGameStateChange += (state) =>
+			{
+				if (state == GameState.Building)
+				{
+					Reset();
+				}
+			};
+		}
+
 
 		protected virtual void Start()
 		{
-			health = data.levels[currentLevelIndex].maxHealth;
+			SetHealth(data.levels[currentLevelIndex].maxHealth);
 			GameManager.Instance.OnEnemyTreaversedTile += ProcessEnemyData;
 		}
 
@@ -48,7 +68,19 @@ namespace ClashOfDefense.Game.Structure
 		{
 			if (data.regenerateHealth)
 			{
-				health = data.levels[currentLevelIndex].maxHealth;
+				SetHealth(data.levels[currentLevelIndex].maxHealth);
+				if (isDead)
+				{
+					isDead = false;
+					gameObject.SetActive(true);
+				}
+			}
+			else // If cannot regenerate health, and if it is dead, delete it
+			{
+				if (isDead)
+				{
+					Delete();
+				}
 			}
 		}
 
@@ -59,19 +91,36 @@ namespace ClashOfDefense.Game.Structure
 
 		public virtual void DealDamage(int damage)
 		{
-			health -= damage;
 			HitMark hitMark = Instantiate(hitMarkPrefab, transform.position, Quaternion.identity);
 			hitMark.SetText(damage.ToString());
+			ChangeHealth(-damage);
 			if (health <= 0)
 			{
-				OnDestroyed?.Invoke();
-				Destroy(gameObject);
+				health = 0;
+				isDead = true;
+				OnDead?.Invoke();
+				if (data.regenerateHealth)
+				{
+					gameObject.SetActive(false);
+				}
 			}
 		}
 
-		public void Destroy()
+		private void SetHealth(int health)
 		{
-			OnDestroyed?.Invoke();
+			this.health = health;
+			OnHealthChanged?.Invoke(this.health);
+		}
+
+		private void ChangeHealth(int health)
+		{
+			this.health += health;
+			OnHealthChanged?.Invoke(this.health);
+		}
+
+		public void Delete()
+		{
+			OnDeleted?.Invoke();
 			Destroy(gameObject);
 		}
 

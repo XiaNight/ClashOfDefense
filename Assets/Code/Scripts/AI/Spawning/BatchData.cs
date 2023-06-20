@@ -21,7 +21,7 @@ namespace ClashOfDefense.Game.Entity
 		public struct SpawnData
 		{
 			public EnemyData enemyData;
-			public int count;
+			public int enemyCount;
 		}
 
 		public enum EnemyType

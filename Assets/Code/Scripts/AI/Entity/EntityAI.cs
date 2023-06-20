@@ -8,7 +8,7 @@ namespace ClashOfDefense.Game.Entity
 	using Helper;
 	using Structure;
 
-	public class EntityAI : MonoBehaviour
+	public class EntityAI : MonoBehaviour, IHaveHealth
 	{
 		[Header("Movement")]
 		[SerializeField] protected float speed;
@@ -28,6 +28,9 @@ namespace ClashOfDefense.Game.Entity
 		[SerializeField] protected bool paused = false;
 		[SerializeField] protected bool pauseTreaverse = false;
 		[SerializeField] protected int health;
+		public int Health { get => health; }
+		public int MaxHealth { get => enemyData.health; }
+		public bool IsDead { get => health <= 0; }
 		protected Vector2Int tilePosition;
 		public Vector2Int TilePosition { get => tilePosition; }
 
@@ -35,6 +38,7 @@ namespace ClashOfDefense.Game.Entity
 		public event UnityAction<Vector2Int> OnTreaversedTile;
 		public event UnityAction OnPathEnded;
 		public event UnityAction<EntityAI> OnDeath;
+		public event UnityAction<int> OnHealthChanged;
 
 		protected virtual void Awake()
 		{
@@ -67,6 +71,14 @@ namespace ClashOfDefense.Game.Entity
 
 			speed = enemyData.speed;
 			health = enemyData.health;
+			try
+			{
+				OnHealthChanged?.Invoke(health);
+			}
+			catch (System.Exception e)
+			{
+				Debug.LogError(e);
+			}
 			tilePosition = path[0];
 
 			pathFinded = path;
@@ -116,11 +128,17 @@ namespace ClashOfDefense.Game.Entity
 			health -= damage;
 			if (health <= 0)
 			{
+				health = 0;
 				OnDeath?.Invoke(this);
 				Destroy(gameObject);
 				return true;
 			}
 			return false;
+		}
+
+		public void Delete()
+		{
+			Destroy(gameObject);
 		}
 
 		protected virtual void OnDrawGizmos()

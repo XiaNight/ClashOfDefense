@@ -15,8 +15,8 @@ MonoBehaviour:
   <structureName>k__BackingField: Base
   <icon>k__BackingField: {fileID: 0}
   <levels>k__BackingField:
-  - maxHealth: 100
+  - maxHealth: 1000
     prefab: {fileID: 8202056398251054953, guid: cae93dc6891f6694282fdab56d8f0a65,
       type: 3}
-    upgradeCostToNextLevel: 0
+    cost: 0
   regenerateHealth: 0
