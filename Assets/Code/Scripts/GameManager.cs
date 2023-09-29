@@ -411,6 +411,7 @@ namespace ClashOfDefense.Game
 			Vector2Int mapSpawnPosition = DeterminSpawnPosition(pattern);
 			Vector3 worldSpawnPosition = Helper.MapPositionTransformer.MapToWorldPosition(mapSpawnPosition, tileSize);
 			EntityAI enemy = Instantiate(spawnData.enemyData.entityPrefab, worldSpawnPosition, Quaternion.identity, spawnedContainer);
+			enemy.Setup(spawnData.enemyData);
 			enemy.OnTreaversedTile += (pos) =>
 			{
 				enemy.ProcessStructureData(spawnedBuildings);
@@ -418,7 +419,7 @@ namespace ClashOfDefense.Game
 			};
 			enemy.OnDeath += ProcessEnemyDeath;
 			spawnedEnemies.Add(enemy);
-			pathFindMap.FindPathAsync(mapSpawnPosition, mapCenter, spawnData.enemyData.pathFindLayer, (path) => { enemy.Setup(spawnData.enemyData, path); });
+			pathFindMap.FindPathAsync(mapSpawnPosition, mapCenter, spawnData.enemyData.pathFindLayer, enemy.SetPath);
 		}
 
 		private void ProcessEnemyDeath(EntityAI enemy)

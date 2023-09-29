@@ -8,7 +8,7 @@ namespace ClashOfDefense.Game.Structure
 	using Combat;
 	using Entity;
 
-	public class Turret : Building
+	public class Turret : AssultBuilding
 	{
 		[Header("Turret Transforms")]
 		[SerializeField] protected Transform rotationBase;
@@ -32,8 +32,6 @@ namespace ClashOfDefense.Game.Structure
 #endif
 
 		protected float currentRotationSpeed;
-		protected bool canFire = true;
-		protected EntityAI targetEntity;
 
 		protected override void Awake()
 		{
@@ -55,72 +53,6 @@ namespace ClashOfDefense.Game.Structure
 		protected virtual void FixedUpdate()
 		{
 			AimAndFire();
-		}
-
-		protected virtual void FindNewTarget()
-		{
-			UnsetTarget();
-			foreach (var enemy in GameManager.Instance.spawnedEnemies)
-			{
-				if (enemy == null)
-				{
-					continue;
-				}
-				if (IsInDistance(enemy))
-				{
-					SetTarget(enemy);
-					break;
-				}
-			}
-		}
-
-		public override void ProcessEnemyData(EntityAI enemyData, Vector2Int tilePosition)
-		{
-			base.ProcessEnemyData(enemyData, tilePosition);
-			if (enemyData == null)
-			{
-				return;
-			}
-			if (targetEntity == null)
-			{
-				if (IsInDistance(enemyData))
-				{
-					SetTarget(enemyData);
-				}
-			}
-		}
-
-		protected bool IsInDistance(EntityAI entity)
-		{
-			return Vector2Int.Distance(tilePosition, entity.TilePosition) < targeting.range;
-		}
-
-		protected virtual void SetTarget(EntityAI target)
-		{
-			if (target == null)
-			{
-				return;
-			}
-			targetEntity = target;
-			targetEntity.OnTreaversedTile += OnTargetMoved;
-		}
-
-		protected virtual void OnTargetMoved(Vector2Int position)
-		{
-			if (!IsInDistance(targetEntity))
-			{
-				UnsetTarget();
-			}
-		}
-
-		protected virtual void UnsetTarget()
-		{
-			if (targetEntity == null)
-			{
-				return;
-			}
-			targetEntity.OnTreaversedTile -= OnTargetMoved;
-			targetEntity = null;
 		}
 
 		private void SpawnProjectile()
@@ -200,20 +132,6 @@ namespace ClashOfDefense.Game.Structure
 				{
 					muzzelFlash.Stop();
 				}
-			}
-		}
-
-		protected override void OnDrawGizmos()
-		{
-			base.OnDrawGizmos();
-			// Draw a red sphere at the transform's position to show the firing range
-			Gizmos.color = Color.red;
-			Gizmos.DrawWireSphere(transform.position, targeting.range * GameManager.Instance.tileSize);
-
-			if (targetEntity != null)
-			{
-				Gizmos.color = Color.red;
-				Gizmos.DrawLine(transform.position, targetEntity.transform.position);
 			}
 		}
 

@@ -96,7 +96,7 @@ namespace ClashOfDefense.Game.Structure
 			ChangeHealth(-damage);
 			if (health <= 0)
 			{
-				health = 0;
+				SetHealth(0);
 				isDead = true;
 				OnDead?.Invoke();
 				if (data.regenerateHealth)

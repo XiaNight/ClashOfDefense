@@ -65,26 +65,22 @@ namespace ClashOfDefense.Game.Entity
 			}
 		}
 
-		public virtual int Setup(EnemyData enemyData, Vector2Int[] path)
+		public virtual int Setup(EnemyData enemyData)
 		{
 			this.enemyData = enemyData;
 
 			speed = enemyData.speed;
 			health = enemyData.health;
-			try
-			{
-				OnHealthChanged?.Invoke(health);
-			}
-			catch (System.Exception e)
-			{
-				Debug.LogError(e);
-			}
-			tilePosition = path[0];
+			OnHealthChanged?.Invoke(health);
+			return pathFinded.Length;
+		}
 
+		public virtual void SetPath(Vector2Int[] path)
+		{
+			tilePosition = path[0];
 			pathFinded = path;
 			currentPathIndex = 0;
 			transform.position = MapPositionTransformer.MapToWorldPosition(pathFinded[currentPathIndex], GameManager.Instance.tileSize);
-			return pathFinded.Length;
 		}
 
 		public virtual void ProcessStructureData(IEnumerable<Building> buildings) { }
